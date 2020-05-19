@@ -13,7 +13,7 @@
 
     This version is built to more closely resemble the NES than
     the original Pong machines or the Atari 2600 in terms of
-    resolution, though in widescreen (16:9) so it looks nicer on 
+    resolution, though in widescreen (16:9) so it looks nicer on
     modern systems.
 ]]
 
@@ -79,7 +79,7 @@ function love.load()
         ['score'] = love.audio.newSource('sounds/score.wav', 'static'),
         ['wall_hit'] = love.audio.newSource('sounds/wall_hit.wav', 'static')
     }
-    
+
     -- initialize our virtual resolution, which will be rendered within our
     -- actual window no matter its dimensions
     push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
@@ -242,12 +242,34 @@ function love.update(dt)
     end
 
     -- player 2
+    -- if/else for player-controlled right paddle
+    --[[
     if love.keyboard.isDown('up') then
         player2.dy = -PADDLE_SPEED
     elseif love.keyboard.isDown('down') then
         player2.dy = PADDLE_SPEED
     else
         player2.dy = 0
+    end
+    ]]
+
+    -- if/else for AI-controlled right paddle
+    if gameState == 'play' and ball.dx > 0 and ball.x <= VIRTUAL_WIDTH - 5 then
+      if ball.dy < 0 then
+        if ball.y < player2.y then
+          player2.dy = -math.random(50, PADDLE_SPEED) -- go up
+        elseif ball.y > player2.y then
+          player2.dy = math.random(50, PADDLE_SPEED) -- go down
+        end
+      elseif ball.dy > 0 then
+        if ball.y > player2.y then
+          player2.dy = math.random(50, PADDLE_SPEED) -- go down
+        elseif ball.y < player2.y then
+          player2.dy = -math.random(50, PADDLE_SPEED) -- go up
+        end
+      else
+        player2.dy = 0
+      end
     end
 
     -- update our ball based on its DX and DY only if we're in play state;
@@ -308,7 +330,7 @@ function love.draw()
     push:apply('start')
 
     love.graphics.clear(0, 0, 0, 255)
-    
+
     -- render different things depending on which part of the game we're in
     if gameState == 'start' then
         -- UI messages
@@ -318,7 +340,7 @@ function love.draw()
     elseif gameState == 'serve' then
         -- UI messages
         love.graphics.setFont(smallFont)
-        love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 
+        love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!",
             0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'play' then
@@ -334,7 +356,7 @@ function love.draw()
 
     -- show the score before ball is rendered so it can move over the text
     displayScore()
-    
+
     player1:render()
     player2:render()
     ball:render()
